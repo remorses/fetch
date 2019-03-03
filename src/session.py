@@ -1,12 +1,18 @@
 
-
+default_headers = ({
+        'User-Agent': default_user_agent(),
+        'Accept-Encoding': ', '.join(('gzip', 'deflate')),
+        'Accept': '*/*',
+        'Connection': 'keep-alive',
+    })
 ### strategy
 
 class Session():
 
     def __init__(self):
+        self.cookies = cookies
         opener = OpenerDirector()
-        opener.add_handler(HTTPCookieProcessor())
+        opener.add_handler(HTTPCookieProcessor(self.cookies))
         opener.add_handler(ProxyHandler(proxies=proxies)
         opener.add_headers = [...]
         self.opener = opener
@@ -118,3 +124,36 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 url = 'google.com'
 html = urllib.request.urlopen(url, context=ctx).read()
+
+
+
+
+### cookies example
+import cookielib
+import urllib2
+
+cookies = cookielib.LWPCookieJar()
+handlers = [
+    urllib2.HTTPHandler(),
+    urllib2.HTTPSHandler(),
+    urllib2.HTTPCookieProcessor(cookies)
+    ]
+opener = urllib2.build_opener(*handlers)
+
+def fetch(uri):
+    req = urllib2.Request(uri)
+    return opener.open(req)
+
+def dump():
+    for cookie in cookies:
+        print cookie.name, cookie.value
+
+uri = 'http://www.google.com/'
+res = fetch(uri)
+dump()
+
+res = fetch(uri)
+dump()
+
+# save cookies to disk. you can load them with cookies.load() as well.
+cookies.save('mycookies.txt')
